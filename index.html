@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>丹溪磨腰膏 - 数智化展台 (完整版)</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <style>
+        /* 基础重置 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html {
+            width: 100%; height: 100%; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            color: #333; background-color: #f8f9fa; overflow-y: scroll; scroll-snap-type: y mandatory;
+            scroll-behavior: smooth; scrollbar-width: none;
+        }
+        body::-webkit-scrollbar { display: none; }
+
+        /* 多巴胺流体背景 */
+        .fluid-background {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; overflow: hidden; filter: blur(80px) contrast(40); background: #fff;
+        }
+        .blob { position: absolute; border-radius: 50%; animation: floatBlob 18s infinite alternate ease-in-out; }
+        .blob-1 { width: 60vw; height: 60vw; background: rgba(255, 0, 128, 0.6); top: -10%; left: -10%; }
+        .blob-2 { width: 55vw; height: 55vw; background: rgba(0, 240, 255, 0.6); bottom: -15%; right: -5%; animation-duration: 22s; }
+        .blob-3 { width: 50vw; height: 50vw; background: rgba(255, 215, 0, 0.7); top: 20%; left: 30%; animation-duration: 25s; }
+        .blob-4 { width: 45vw; height: 45vw; background: rgba(112, 0, 255, 0.5); bottom: 10%; left: 10%; animation-duration: 28s; }
+        @keyframes floatBlob { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(20vw, 10vh) scale(1.1); } 100% { transform: translate(-10vw, 20vh) scale(0.9); } }
+
+        /* 浅色磨砂遮罩 */
+        .overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(15px); z-index: 1; }
+
+        /* 页面通用结构 */
+        section {
+            width: 100%; height: 100vh; scroll-snap-align: start; display: flex;
+            justify-content: center; align-items: center; position: relative; padding: 20px; z-index: 10;
+        }
+        .glass-panel {
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.4) 70%, rgba(255, 255, 255, 0) 100%);
+            backdrop-filter: blur(20px); border-radius: 30px; padding: 40px;
+            width: 100%; max-width: 1200px; box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.1);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .glass-panel::-webkit-scrollbar { width: 6px; }
+        .glass-panel::-webkit-scrollbar-thumb { background: rgba(255,0,127,0.3); border-radius: 10px; }
+
+        /* 标题样式 */
+        h2.section-title { font-size: 2.2rem; text-align: center; margin-bottom: 30px; color: #7000ff; font-weight: 900;}
+        h1 { font-size: 3.5rem; background: linear-gradient(120deg, #ff007f, #7000ff); -webkit-background-clip: text; color: transparent; margin-bottom: 20px; font-weight: 900; }
+
+        /* 第一屏：封面 */
+        .page-1 { flex-direction: column; text-align: center; }
+        .subtitle { font-size: 1.5rem; color: #444; margin-bottom: 30px; font-weight: bold; }
+        .scroll-arrow { position: absolute; bottom: 40px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.6); display: flex; justify-content: center; align-items: center; color: #ff007f; font-size: 24px; animation: bounce 2s infinite; cursor: pointer; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-15px); } 60% { transform: translateY(-7px); } }
+
+        /* 通用卡片网格 */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .card { background: rgba(255,255,255,0.7); border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-top: 3px solid #ff007f; }
+        .card h3 { color: #ff007f; font-size: 1.2rem; margin-bottom: 10px; }
+        .card p { color: #555; line-height: 1.6; font-size: 0.95rem; }
+        .card ul { padding-left: 20px; color: #555; line-height: 1.6; font-size: 0.95rem;}
+
+        /* 第二屏：理论溯源 */
+        .page-2 .card { border-top-color: #7000ff; }
+        .page-2 .card h3 { color: #7000ff; }
+        .text-quote { background: rgba(112,0,255,0.05); padding: 15px; border-radius: 10px; border-left: 4px solid #7000ff; font-style: italic; color: #444; margin-top: 10px; }
+
+        /* 第三屏：配方解析 */
+        .page-3 .card { border-top-color: #00f0ff; }
+        .page-3 .card h3 { color: #00f0ff; }
+        .comparison { display: flex; align-items: center; justify-content: space-around; background: rgba(0,240,255,0.05); padding: 20px; border-radius: 15px; margin-bottom: 20px;}
+        .comparison div { text-align: center; font-weight: bold; }
+        .comparison .arrow { color: #ff007f; font-size: 2rem; }
+
+        /* 第四屏：时间轴 */
+        .timeline { position: relative; max-width: 800px; margin: 0 auto; }
+        .timeline::after { content: ''; position: absolute; width: 4px; background: #ff007f; top: 0; bottom: 0; left: 50%; margin-left: -2px; border-radius: 2px; }
+        .timeline-item { padding: 10px 40px; position: relative; background-color: inherit; width: 50%; }
+        .timeline-item.left { left: 0; }
+        .timeline-item.right { left: 50%; }
+        .timeline-item::after { content: ''; position: absolute; width: 20px; height: 20px; right: -10px; background-color: white; border: 4px solid #ff007f; top: 15px; border-radius: 50%; z-index: 1; }
+        .timeline-item.right::after { left: -10px; }
+        .timeline-content { padding: 15px 20px; background: rgba(255,255,255,0.8); border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .timeline-content h4 { color: #ff007f; margin-bottom: 5px; }
+        .timeline-content p { font-size: 0.9rem; color: #555; }
+
+        /* 第五屏：数据看板 */
+        .page-5 .card { border-top-color: #10b981; }
+        .page-5 .card h3 { color: #10b981; }
+        .data-list { display: flex; flex-direction: column; gap: 10px; }
+        .data-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; padding-bottom: 5px; font-size: 0.9rem; }
+        .data-row span:first-child { font-weight: bold; color: #666; }
+        .data-row span:last-child { color: #333; }
+        .normal { color: #10b981 !important; font-weight: bold; }
+
+        /* 第六屏：随访图表 */
+        .page-6 .glass-panel { display: flex; gap: 40px; }
+        .chart-container { flex: 1.5; height: 350px; }
+        .form-area { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .input-group { display: flex; flex-direction: column; gap: 15px; }
+        .input-group input { padding: 15px; border-radius: 10px; border: 1px solid #ccc; outline: none; font-size: 1rem; }
+        .input-group button { padding: 15px; background: linear-gradient(135deg, #ff007f, #7000ff); color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+
+        /* 第七屏：应用价值 */
+        .page-7 .card { border-top-color: #f59e0b; }
+        .page-7 .card h3 { color: #f59e0b; }
+
+        /* 第八屏：Q&A */
+        .faq-container { max-width: 900px; margin: 0 auto; }
+        .faq-item { background: rgba(255,255,255,0.8); border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .faq-question { padding: 20px; cursor: pointer; font-weight: bold; color: #7000ff; display: flex; justify-content: space-between; font-size: 1.1rem; }
+        .faq-answer { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; color: #444; line-height: 1.6; font-size: 0.95rem; }
+        .faq-item.active .faq-answer { padding: 20px; max-height: 300px; }
+        
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .page-6 .glass-panel { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+            .timeline::after { left: 31px; }
+            .timeline-item { width: 100%; padding-left: 70px; padding-right: 25px; }
+            .timeline-item.right { left: 0%; }
+            .timeline-item::after { left: 21px; }
+            .timeline-item.right::after { left: 21px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景与遮罩 -->
+    <div class="fluid-background">
+        <div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div><div class="blob blob-4"></div>
+    </div>
+    <div class="overlay"></div>
+
+    <!-- 1. 封面 -->
+    <section class="page-1">
+        <div class="glass-panel" style="max-height: none; overflow: visible;">
+            <h1>基于朱丹溪磨腰膏介质<br>干预非特异性寒湿腰痛</h1>
+            <div class="subtitle">技能大赛完整实施方案 · 数智化随访展示平台</div>
+            <p style="color:#555; margin-top:20px;">参赛团队：智绘数康团队 | 指导老师：王丹</p>
+        </div>
+        <div class="scroll-arrow">↓</div>
+    </section>
+
+    <!-- 2. 理论溯源 -->
+    <section class="page-2">
+        <div class="glass-panel">
+            <h2 class="section-title">📖 理论溯源与病机分析</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>核心病机：不通则痛，不荣则痛</h3>
+                    <p>患者长期久坐劳损，腰府筋脉亏虚，复感寒湿。寒凝湿滞，筋脉收引拘急，气血痹阻不通。中医认为“肝主筋，脾主肉”，久坐伤脾生湿，气血不充致肌肉僵硬痉挛。</p>
+                    <div class="text-quote">《丹溪心法·腰痛》：腰痛不离湿、痰、瘀、气滞。</div>
+                </div>
+                <div class="card">
+                    <h3>治则与热敷玄机</h3>
+                    <p>治以温经祛湿、行气活血、松解筋结。首步采用45-50℃热敷，借温热之性扩张气血，软化筋膜，打开皮毛腠理。</p>
+                    <div class="text-quote">《本草纲目》：食盐咸寒入肾，软坚引药下行。热敷变盐之寒为温通之功，松解湿浊痹阻。</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. 配方解析 -->
+    <section class="page-3">
+        <div class="glass-panel">
+            <h2 class="section-title">🧪 配方改良与安全性解析</h2>
+            <div class="comparison">
+                <div>原方（《张氏医通》）<br><span style="font-size:0.9rem; color:#666;">附子、川乌、南星、蜀椒、雄黄、樟脑、丁香、干姜、麝香</span></div>
+                <div class="arrow">➜</div>
+                <div>改良方案<br><span style="font-size:0.9rem; color:#ff007f;">将雄黄、朱砂替换为蜀椒</span></div>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>为何要去毒减毒？</h3>
+                    <p>原方中雄黄、朱砂为矿物佐药（镇心安神、攻毒杀虫）。但对于一首以“温通止痛”为核心的膏摩方，用辛温走窜的蜀椒替代，能让药力更集中，且大幅降低毒性负载，符合现代用药安全。</p>
+                </div>
+                <div class="card">
+                    <h3>为何保留附子、川乌？</h3>
+                    <p>“药以治病，以毒为能”。附子大辛大热，能破阴回阳。外用膏摩仅通过完整皮肤吸收，阻断毒性入体循环。符合《理瀹骈文》“皮肤隔而毛窍通，不见脏腑恰达脏腑”的安全原则。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. 标准化流程 -->
+    <section class="page-4">
+        <div class="glass-panel" style="background: transparent; box-shadow: none;">
+            <h2 class="section-title">🖐️ 标准化操作流程 (SOP)</h2>
+            <div class="timeline">
+                <div class="timeline-item left">
+                    <div class="timeline-content">
+                        <h4>第一步：温热预处理 (3-5min)</h4>
+                        <p>45-50℃热敷垫置于双侧腰肌，软化筋膜，打开腠理。</p>
+                    </div>
+                </div>
+                <div class="timeline-item right">
+                    <div class="timeline-content">
+                        <h4>第二步：涂抹介质 (核心)</h4>
+                        <p>涂抹改良丹溪磨腰膏，药助手法，手法引药。</p>
+                    </div>
+                </div>
+                <div class="timeline-item left">
+                    <div class="timeline-content">
+                        <h4>第三步：分层理筋推拿 (6min)</h4>
+                        <p>掌揉浅层放松 → 按法深层解结 → 点按穴位(肾俞/大肠俞/委中) → 直推疏通膀胱经 → 擦法收尾透热。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. 现代医学数据支撑 -->
+    <section class="page-5">
+        <div class="glass-panel">
+            <h2 class="section-title">🏥 典型病例与辅助检查</h2>
+            <p style="text-align: center; margin-bottom: 20px; color: #666; font-weight: bold;">患者赵某，男，44岁。西医诊断：腰肌劳损。中医诊断：腰痛（寒湿腰痛证）。</p>
+            <div class="grid-3">
+                <div class="card">
+                    <h3>炎症与血液指标</h3>
+                    <div class="data-list">
+                        <div class="data-row"><span>白细胞</span><span class="normal">6.2 × 10^9/L</span></div>
+                        <div class="data-row"><span>CRP</span><span class="normal">2.1 mg/L</span></div>
+                        <div class="data-row"><span>血沉 (ESR)</span><span class="normal">8 mm/h</span></div>
+                        <div class="data-row"><span>结论</span><span class="normal">排除感染与炎症</span></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>肝肾与凝血功能</h3>
+                    <div class="data-list">
+                        <div class="data-row"><span>ALT / AST</span><span class="normal">22 / 20 U/L</span></div>
+                        <div class="data-row"><span>肌酐 (eGFR)</span><span class="normal">78 μmol/L</span></div>
+                        <div class="data-row"><span>凝血 (INR)</span><span class="normal">1.02</span></div>
+                        <div class="data-row"><span>结论</span><span class="normal">无出血倾向，可推拿</span></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>影像学检查</h3>
+                    <div class="data-list">
+                        <div class="data-row"><span>X线</span><span class="normal">无骨折/破坏</span></div>
+                        <div class="data-row"><span>MRI</span><span class="normal">无占位/椎管狭窄</span></div>
+                        <div class="data-row"><span>神经压迫</span><span class="normal">阴性 (-)</span></div>
+                        <div class="data-row"><span>结论</span><span class="normal">排除禁忌证</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. 数智化随访 -->
+    <section class="page-6">
+        <div class="glass-panel">
+            <div style="flex: 1.5;">
+                <h2 style="color:#ff007f; margin-bottom:15px;">📈 康复随访跟踪 (VAS评分)</h2>
+                <div class="chart-container" id="mainChart"></div>
+            </div>
+            <div class="form-area">
+                <h3 style="color:#7000ff; margin-bottom:15px;">录入患者随访数据</h3>
+                <p style="color:#666; margin-bottom:20px; font-size:0.9rem;">通过数字面板直观反映古方干预效果，实现疗效可视化。</p>
+                <form id="dataForm" class="input-group">
+                    <input type="text" id="patientName" placeholder="患者姓名/编号" required>
+                    <input type="number" id="vasScore" min="0" max="10" placeholder="今日疼痛评分 (0-10分)" required>
+                    <button type="submit">提交数据并生成图表</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. 应用价值 -->
+    <section class="page-7">
+        <div class="glass-panel">
+            <h2 class="section-title">🌟 项目价值与应用前景</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>化繁为简，易于推广</h3>
+                    <p>将复杂的古方与现代康复手法结合，形成一套“热敷-涂药-理筋”的标准SOP。无需昂贵设备，极其适合在基层社区卫生服务中心、中医馆推广应用。</p>
+                </div>
+                <div class="card">
+                    <h3>古方新用，减毒增效</h3>
+                    <p>科学论证了有毒中药外用的安全性，为中医经典名方的现代化开发提供了新思路。通过数智化随访，为临床疗效提供了客观的数据支撑。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. Q&A -->
+    <section class="page-8">
+        <div class="glass-panel">
+            <h2 class="section-title">💡 评委答辩核心要点</h2>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">Q1：本证的中医病机是什么？ <span>+</span></div>
+                    <div class="faq-answer">久劳伤筋，腰府失固，寒湿外侵。寒凝湿滞导致筋脉收引拘急，气血痹阻，发为腰痛（不通则痛，不荣则痛）。</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Q2：为什么第一步一定要先热敷？ <span>+</span></div>
+                    <div class="faq-answer">寒主收引，湿邪黏滞。热敷可温散寒湿，舒缓痉挛肌筋，改善局部张力，同时打开皮毛腠理，利于后续药物透入（《理瀹骈文》熨法先行）。</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Q3：“脉沉弦而濡细”怎么解释？ <span>+</span></div>
+                    <div class="faq-answer">出自《玉机微义》腰痛脉法：沉主里、寒；弦主筋拘疼痛；濡细主湿邪留滞腰络。合为寒湿痹阻腰痛之脉。</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Q4：擦法在结尾的作用是什么？ <span>+</span></div>
+                    <div class="faq-answer">擦法是膏摩收尾绝佳手法，通过极速摩擦产生热力，助药渗透。擦法契合寒湿证，能温通助渗，收束气机，但注意力度不要把药膏全部擦干。</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Q&A 手风琴
+        document.querySelectorAll('.faq-question').forEach(item => {
+            item.addEventListener('click', () => {
+                const parent = item.parentElement;
+                parent.classList.toggle('active');
+                item.querySelector('span').innerText = parent.classList.contains('active') ? '-' : '+';
+            });
+        });
+
+        // 图表渲染
+        setTimeout(function() {
+            var chartDom = document.getElementById('mainChart');
+            if(!chartDom) return;
+            var myChart = echarts.init(chartDom);
+            let records = JSON.parse(localStorage.getItem('patientFollowUpFull')) || [];
+            
+            function updateUI() {
+                let xData = records.length > 0 ? records.map(r => r.name) : ['初诊', '第3天', '第7天', '第14天'];
+                let yData = records.length > 0 ? records.map(r => r.score) : [8, 6, 4, 1];
+
+                var option = {
+                    backgroundColor: 'transparent',
+                    tooltip: { trigger: 'axis' },
+                    grid: { top: 20, right: 20, bottom: 30, left: 30 },
+                    xAxis: { type: 'category', data: xData, axisLabel: { color: '#555' } },
+                    yAxis: { type: 'value', min: 0, max: 10, axisLabel: { color: '#555' }, splitLine: { lineStyle: { color: 'rgba(0,0,0,0.05)' } } },
+                    series: [{
+                        data: yData, type: 'line', smooth: true, symbol: 'circle', symbolSize: 10,
+                        itemStyle: { color: '#ff007f', borderColor: '#fff', borderWidth: 3 },
+                        lineStyle: { width: 4, color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{offset: 0, color: '#ff007f'}, {offset: 1, color: '#7000ff'}]) },
+                        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset: 0, color: 'rgba(255,0,127,0.3)'}, {offset: 1, color: 'rgba(255,0,127,0)'}]) }
+                    }]
+                };
+                myChart.setOption(option);
+            }
+            updateUI();
+
+            document.getElementById('dataForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                records.push({ name: document.getElementById('patientName').value, score: document.getElementById('vasScore').value });
+                localStorage.setItem('patientFollowUpFull', JSON.stringify(records));
+                updateUI();
+                document.getElementById('patientName').value = '';
+                document.getElementById('vasScore').value = '';
+            });
+            
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) { myChart.resize(); }
+            }, { threshold: 0.1 });
+            observer.observe(document.querySelector('.page-6'));
+        }, 300);
+    </script>
+</body>
+</html>
